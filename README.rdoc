@@ -1,14 +1,14 @@
 = RGData
 
 RGData makes it easy to get data from Google's Data APIs.
-It streamlines requests and gives you back good ole Ruby objects.
+It streamlines the parts that give you headaches (requests, OAUTH2 authentication, etc.) and gives you back good ole Ruby objects.
 
 An Example:
 
   domain = 'redningja.com'
   profiles = RGData::API::Profiles.retrieve domain, oauth_token: 'access_token_thatlookslikegibberish'
-  => [#<RGData::Model::Profile full_name: 'Jared Ning'>, ...]
-  # Now you can just do this:
+  #=> [#<RGData::Model::Profile full_name: 'Jared Ning'>, ...]
+  # With a Ruby object in hand, getting the data is easy:
   profiles.first.full_name
   # Want each user's email addresses?
   profiles.map(&:emails)
@@ -16,7 +16,7 @@ An Example:
 == Installation
 
   gem install rgdata
-
+ 
   RGData.config do
     client_id     <your client_id>
     client_secret <your client_secret>
@@ -30,21 +30,24 @@ There's a lot of setup, but after that it should be easy.
 * Setup
   * Get your client_id and client_secret
     * https://code.google.com/apis/console
-    * Click on Identity at the left.
+    * Click on 'Identity' at the left.
     * Look for OAuth2 Credentials and you'll find your client_id and client_secret
-  * While you're you may want to list your redirect URIs if you know what they will be. These must match your authentication requests (more on this later).
+  * While you're here, you may want to list your redirect URIs if you know what they will be. These must match your authentication requests (more on this in just a bit).
 * Request authentication. (Depending on which API you are using, there may be specific instructions you may want to tell your user about. See the individual APIs classes for specifics.)
-  * Your user will go to the request URL generated for you by calling, for example, RGData::API::Profiles.request_url(scope, redirect_uri).
+  * Your user will go to the request URL generated for you by calling, for example, RGData::API::Profiles.request_url(redirect_uri) # redirect_uri MUST BE LISTED IN YOUR API CONSOLE.
   * They will be promted by Google to authenticate and grant permission.
-* Successful authentication will return hash that you are responsible for collecting. It includes 3 parts:
+* Successful authentication will return an authorization code in the form of a callback to redirect_uri. The authorization code is attached to the URL as a parameter - e.g. http://redirect_back.com?authorization_code=42istheanswer.
+* Now you have the dough, so go get the bread. (You get 1 shot at this. Once the authorization_code is used on Google, it's useless.) Use this authorization code to swap for a hash with all the goodies. The hash has 3 parts:
   * access_token: This is what we're after. You can use this immediately to retrieve data. You can also get one by using refresh_token which we'll get to in a sec.
-  * expiration: You have this many seconds to use access_token before it expires.
+  * expires_in: You have this many seconds to use access_token before it expires.
   * refresh_token: See below.
-* Once you have your access token, you can start accessing the data.
+* Finalyy, once you have your access token, you can start accessing the data.
 
 === Refresh tokens
 
-A refresh token won't get you into the data, but it will allow you to get more access tokens in the future. Keep this if you don't want your users to re-authenticate over and over again.
+A refresh token won't get you into the data, but it will allow you to get more access tokens in the future.
+Keep this if you don't want your users to re-authenticate over and over again.
+REFRESH TOKENS EXPIRE AFTER 24 HOURS.
 To get another access token:
 
   RGData::API::Profiles.get_access_token(refresh_token)
@@ -53,7 +56,7 @@ For convenience, APIs are smart enough to do this work for you:
 
   RGData::API::Profiles.retrieve domain, refresh_token: refresh_token
 
-=== client-side and native application authentication
+=== Client-side and native application authentication
 
 TODO
 
@@ -85,6 +88,29 @@ Currently the gem only supports retrieving all (or at least all that Google allo
 Please feel free to contribute more APIs.
 Take a look at lib/rgdata/apis/profiles.rb and lib/rgdata/models/profile.rb to see how easy it is.
 For the API, just find the scope (link below)
+
+== TODOs
+
+Feel free to contribute.
+
+* Client-side authentication
+* Native application authentication
+* Retrieving data with query parameters (limit, start index, etc.)
+* Retrieving individual (as opposed to all)
+* Lots of more APIs.
+* Capture error messages: If google denies something, there may be some useful error messages.
+
+== Testing
+
+This gem tests live with Google.
+You'll need to set some environment variables for your own client_id, client_secret, refresh_token, and domain.
+See mspec/spec_helper.rb.
+I set them in my .bash_profile.
+
+  export GOOGLE_APPS_CLIENT_ID='1234567890.apps.googleusercontent.com'
+  export GOOGLE_APPS_CLIENT_SECRET='blahblahblah'
+  export GOOGLE_APPS_REFRESH_TOKEN='sierra_mist_foobar'
+  export GOOGLE_APPS_DOMAIN='redningja.com'
 
 == Compatibility
 

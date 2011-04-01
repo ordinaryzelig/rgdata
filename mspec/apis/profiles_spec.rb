@@ -9,14 +9,12 @@ describe RGData::API::Profiles do
   it 'requests authentication url' do
     redirect_uri = 'http://come.back.here.after.successful.authentication.com/'
     request_url = RGData::API::Profiles.request_url(redirect_uri)
-    uri = URI.escape("https://accounts.google.com/o/oauth2/auth?redirect_uri=http://come.back.here.after.successful.authentication.com/&scope=http://www.google.com/m8/feeds/&response_type=code&client_id=#{RGData.config.client_id}")
+    uri = URI.escape("https://accounts.google.com/o/oauth2/auth?client_id=#{RGData.config.client_id}&redirect_uri=http://come.back.here.after.successful.authentication.com/&scope=http://www.google.com/m8/feeds/&response_type=code")
     request_url.must_equal uri
   end
 
   it 'retrieves profiles from a domain' do
-    domain = 'redningja.com'
-    access_token = RGData::Authentication.get_access_token(TEST_REFRESH_TOKEN)
-    profiles = RGData::API::Profiles.retrieve(domain, oauth_token: access_token)
+    profiles = RGData::API::Profiles.retrieve(TEST_DOMAIN, refresh_token: TEST_REFRESH_TOKEN)
     profiles.wont_be_empty
   end
 

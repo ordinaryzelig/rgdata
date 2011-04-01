@@ -3,12 +3,12 @@ class Hash
   # This gem was meant to help deal with the strictness of APIs
   # and their inability to give good feedback for mundane detail errors.
   # This method helps eliminate guessing when it comes to Request query/body/etc. hashes.
-  def verify_keys_present_and_values_not_nil(*keys)
+  def verify_keys_present_and_values_not_blank(*keys)
     keys.each do |key|
       unless has_key?(key.to_sym) || has_key?(key.to_s)
         raise "Options missing '#{key}'"
       end
-      if extract(key).nil?
+      if extract(key).blank?
         raise "Option '#{key}' cannot be nil"
       end
     end
