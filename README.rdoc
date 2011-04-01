@@ -1,0 +1,98 @@
+= RGData
+
+RGData makes it easy to get data from Google's Data APIs.
+It streamlines requests and gives you back good ole Ruby objects.
+
+An Example:
+
+  domain = 'redningja.com'
+  profiles = RGData::API::Profiles.retrieve domain, oauth_token: 'access_token_thatlookslikegibberish'
+  => [#<RGData::Model::Profile full_name: 'Jared Ning'>, ...]
+  # Now you can just do this:
+  profiles.first.full_name
+  # Want each user's email addresses?
+  profiles.map(&:emails)
+
+== Installation
+
+  gem install rgdata
+
+  RGData.config do
+    client_id     <your client_id>
+    client_secret <your client_secret>
+  end
+
+== Authentication
+
+To retrieve data, you need an oauth token (a.k.a. access token).
+There's a lot of setup, but after that it should be easy.
+
+* Setup
+  * Get your client_id and client_secret
+    * https://code.google.com/apis/console
+    * Click on Identity at the left.
+    * Look for OAuth2 Credentials and you'll find your client_id and client_secret
+  * While you're you may want to list your redirect URIs if you know what they will be. These must match your authentication requests (more on this later).
+* Request authentication. (Depending on which API you are using, there may be specific instructions you may want to tell your user about. See the individual APIs classes for specifics.)
+  * Your user will go to the request URL generated for you by calling, for example, RGData::API::Profiles.request_url(scope, redirect_uri).
+  * They will be promted by Google to authenticate and grant permission.
+* Successful authentication will return hash that you are responsible for collecting. It includes 3 parts:
+  * access_token: This is what we're after. You can use this immediately to retrieve data. You can also get one by using refresh_token which we'll get to in a sec.
+  * expiration: You have this many seconds to use access_token before it expires.
+  * refresh_token: See below.
+* Once you have your access token, you can start accessing the data.
+
+=== Refresh tokens
+
+A refresh token won't get you into the data, but it will allow you to get more access tokens in the future. Keep this if you don't want your users to re-authenticate over and over again.
+To get another access token:
+
+  RGData::API::Profiles.get_access_token(refresh_token)
+
+For convenience, APIs are smart enough to do this work for you:
+
+  RGData::API::Profiles.retrieve domain, refresh_token: refresh_token
+
+=== client-side and native application authentication
+
+TODO
+
+== Retrieving data
+
+Easy:
+
+  # If you already have an access_token or oauth_token (same diff)
+  RGData::API::Profiles.retrieve domain, oauth_token: oauth_token
+  # If you only have a refresh token
+  RGData::API::Profiles.retrieve domain, refresh_token: refresh_token
+  # Both will return familiar, easy-to-use Ruby objects
+  _.first.full_name
+  #=> 'Jared Ning'
+
+=== Query parameters, Retrieving a single profile, etc.
+
+TODO
+
+There are more ways to retrieve information (e.g. http://code.google.com/googleapps/domain/profiles/developers_guide_protocol.html#Retrieving).
+Currently the gem only supports retrieving all (or at least all that Google allows in one request).
+
+== Supported APIs
+
+* Profiles
+
+=== Add more
+
+Please feel free to contribute more APIs.
+Take a look at lib/rgdata/apis/profiles.rb and lib/rgdata/models/profile.rb to see how easy it is.
+For the API, just find the scope (link below)
+
+== Compatibility
+
+Ruby 1.9. Want 1.8 support? Go fork yourself.
+gem-testers: http://test.rubygems.org/gems/rgdata
+
+== Useful links
+
+* OAuth2 for server side: http://code.google.com/apis/accounts/docs/OAuth2.html#SS
+* Scopes: http://code.google.com/apis/gdata/faq.html#AuthScopes
+* Each API class should have a link to its corresponding Google API page.
