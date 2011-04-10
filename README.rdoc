@@ -30,7 +30,7 @@ There's a lot of setup, but after that it should be easy.
 * Setup
   * Get your client_id and client_secret
     * https://code.google.com/apis/console
-    * Click on 'Identity' at the left.
+    * Click on 'API Access' at the left.
     * Look for OAuth2 Credentials and you'll find your client_id and client_secret
   * While you're here, you may want to list your redirect URIs if you know what they will be. These must match your authentication requests (more on this in just a bit).
 * Request authentication. (Depending on which API you are using, there may be specific instructions you may want to tell your user about. See the individual APIs classes for specifics.)
@@ -50,7 +50,7 @@ Keep this if you don't want your users to re-authenticate over and over again.
 REFRESH TOKENS EXPIRE AFTER 24 HOURS.
 To get another access token:
 
-  RGData::API::Profiles.get_access_token(refresh_token)
+  RGData::API::Profiles.swap_refresh_token(refresh_token)
 
 For convenience, APIs are smart enough to do this work for you:
 
